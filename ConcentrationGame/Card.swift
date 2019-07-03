@@ -14,16 +14,33 @@ import Foundation
 // ValueType => When you pass it as an argument, it gets copied.
 // Copy-On-Write Semantics
 //Reference Types => Things lives in Heap, has pointers to it, you're passing pointers to it around.
-struct Card
+struct Card: Hashable
 {
     // UI Independent so no emojis.
     var isFaceUp = false
     var isMatched = false
-    var identifier: Int
+    private var identifier: Int
     
-    static var identifierFactory = 0
+    // Synthesized by compiler
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(self.identifier)
+    }
     
-    static func getUniqueIdentifier() -> Int {
+    
+    static func ==(lhs:Card, rhs:Card) -> Bool {
+        return lhs.identifier == rhs.identifier
+    }
+    // Default implementation from protocol extension
+    var hashValue: Int {
+        var hasher = Hasher()
+        self.hash(into: &hasher)
+        return hasher.finalize()
+    }
+    
+    
+    private static var identifierFactory = 0
+    
+    private static func getUniqueIdentifier() -> Int {
         identifierFactory += 1
         return identifierFactory
     }

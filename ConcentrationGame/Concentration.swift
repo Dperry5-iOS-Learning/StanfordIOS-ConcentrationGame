@@ -7,19 +7,33 @@
 //
 
 import Foundation
-class Concentration
+// Was originally, may be better as a struct.
+struct Concentration
 {
-    //
-    var cards = [Card]()
-    var indexOfOneAndOnlyFaceUpCard: Int?
+    //has to be public readable
+    // but not settable
+    // Anything as a var is writable
+    // let is not writable
+    private(set) var cards = [Card]()
     
-    func flipAllCardsFaceDown(){
-        for flipDownIndex in cards.indices{
-            cards[flipDownIndex].isFaceUp = false
+    // mutable because it has the setter
+    private var indexOfOneAndOnlyFaceUpCard: Int? {
+        get {
+            return cards.indices.filter{ cards[$0].isFaceUp}.oneAndOnly
+        }
+        set {
+            for index in cards.indices {
+                cards[index].isFaceUp = (index == newValue)
+            }
         }
     }
     
-    func chooseCard(at index:Int){
+    
+    // Have to add mutating because self is used.
+    // Value-Types require this kind of mutating declaration.
+    // Copy-On-Write Semantics requires this.
+    mutating func chooseCard(at index:Int){
+        assert(cards.indices.contains(index), "Concentration.chooseCard(at: \(index)): chosen index not in the cards")
         if !cards[index].isMatched {
             // 3 cases:
             // No cards are face up
@@ -28,24 +42,22 @@ class Concentration
             // One Card Face Up, now we need to test the match
             if let matchIndex = indexOfOneAndOnlyFaceUpCard, matchIndex != index {
                 // Check if cards match
-                if cards[matchIndex].identifier == cards[index].identifier{
+                if cards[matchIndex] == cards[index]{
                     cards[matchIndex].isMatched = true
                     cards[index].isMatched = true
                 }
                 
                 cards[index].isFaceUp = true
-                indexOfOneAndOnlyFaceUpCard = nil
             } else{
                 // either No Cards or 2 cards are face up
                 // Turn all Cards Facedown
-                flipAllCardsFaceDown()
-                cards[index].isFaceUp = true
                 indexOfOneAndOnlyFaceUpCard = index
             }
         }
     }
     
     init(numberOfPairsOfCards: Int){
+        assert(numberOfPairsOfCards > 0, "Concentration.init(\(numberOfPairsOfCards)): You must have at least one pair of cards")
         // 1 up to and including numberOfPairsOfCards
         // _ means ignore this / I don't care what this is
         for _ in 1...numberOfPairsOfCards {
@@ -54,9 +66,13 @@ class Concentration
             // Passing in struct of card, creates a copy.
             cards += [card, card]
         }
-        //TODO: Shuffle the cards
-//        cards.shufle()
         cards = cards.shuffled()
     }
     
+}
+
+extension Collection {
+    var oneAndOnly: Element? {
+        return count == 1 ? first: nil
+    }
 }

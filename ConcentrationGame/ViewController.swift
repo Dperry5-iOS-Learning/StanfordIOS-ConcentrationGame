@@ -12,37 +12,53 @@ class ViewController: UIViewController {
 
     // Does not get initialized until its referenced
     // Cannot use property observervers like didSet
-    lazy var game = Concentration(numberOfPairsOfCards: (cardButtons.count + 1) / 2);
+    private lazy var game = Concentration(numberOfPairsOfCards: numberOfPairsOfCards);
+    
+    // computed property
+    // should not be settable, but its not settable anyway
+    
+    var numberOfPairsOfCards: Int {
+        return (cardButtons.count + 1) / 2
+    }
+    
     // Property == Instant Variable
     // Must be initialized
     // Type Inference (no decimal, so its an int
-    var flipCount = 0 {
+    // Initialization does NOT invoke didSet
+    private(set) var flipCount = 0 {
         didSet {
-          flipCountLabel.text = "Flips: \(flipCount)"
+            updateFlipCountLabel()
         }
     }
     
-    var emojiChoices = ["🎃", "🍭", "🍫", "🍬","👻","🦇", "😈","🍎","🙀" ]
-    var currentEmojiChoices = [String]()
-
-    // TODO Add Button to restart game.
-    
-    @IBAction func newGamePressed(_ sender: Any) {
-        currentEmojiChoices = emojiChoices
-        game = Concentration(numberOfPairsOfCards: (cardButtons.count + 1) / 2)
-        game.flipAllCardsFaceDown()
-        updateViewFromModel()
-        flipCount = 0;
-        
+    private func updateFlipCountLabel(){
+        // Add some outline and cool ness
+        let attributes: [NSAttributedString.Key:Any] = [
+            .strokeWidth: 5.0,
+            .strokeColor: #colorLiteral(red: 1, green: 0.6172243953, blue: 0, alpha: 1)
+        ]
+        let attributedString = NSAttributedString(string: "Flips: \(flipCount)", attributes: attributes)
+        flipCountLabel.attributedText = attributedString
     }
-    //! is important, but we'll come back to it later
-    @IBOutlet weak var flipCountLabel: UILabel!
     
-    @IBOutlet var cardButtons: [UIButton]!
+    private var emojiChoices = ["🎃", "🍭", "🍫", "🍬","👻","🦇", "😈","🍎","🙀" ]
+    private var currentEmojiChoices = [String]()
+    
+    private var emoji = [Card:String]()
+
+    //! is important, but we'll come back to it later
+    // Updates on firstConnect here.
+    @IBOutlet private weak var flipCountLabel: UILabel! {
+        didSet {
+            updateFlipCountLabel()
+        }
+    }
+    @IBOutlet private var cardButtons: [UIButton]!
+    
+    
+    
     
 
-    
-    
     override func viewDidLoad() {
         super.viewDidLoad()
         currentEmojiChoices = emojiChoices
@@ -50,7 +66,19 @@ class ViewController: UIViewController {
     }
     
     
-    @IBAction func touchCard(_ sender: UIButton) {
+    // TODO Add Button to restart game.
+    
+    @IBAction private func newGamePressed(_ sender: Any) {
+        currentEmojiChoices = emojiChoices
+        game = Concentration(numberOfPairsOfCards: (cardButtons.count + 1) / 2)
+        updateViewFromModel()
+        emoji = [Card:String]()
+
+        flipCount = 0;
+    }
+
+    
+    @IBAction private func touchCard(_ sender: UIButton) {
         // Return value of an Optional Int
         // Optional has 2 states: Set and NotSet
         // ! = Assume  optional is set, and grab associated value, if optional isn't set, and ! is used, the program will crash
@@ -69,7 +97,7 @@ class ViewController: UIViewController {
       
     }
     
-    func updateViewFromModel(){
+    private func updateViewFromModel(){
         for index in cardButtons.indices {
             let button = cardButtons[index]
             let card = game.cards[index]
@@ -89,8 +117,7 @@ class ViewController: UIViewController {
     
     //Declarations of Dictionaries
     //var emoji = Dictionary<Int, String>()
-    var emoji = [Int:String]()
-    func emoji(for card: Card) -> String {
+    private func emoji(for card: Card) -> String {
         // Could do this...
 //        if emoji[card.identifier] != nil {
 //            return emoji[card.identifier]
@@ -98,11 +125,25 @@ class ViewController: UIViewController {
 //            return "?"
 //        }
         // Same as commented out if/elseabove
-        if emoji[card.identifier] == nil, currentEmojiChoices.count > 0{
-                emoji[card.identifier] = currentEmojiChoices.remove(at: Int(arc4random_uniform(UInt32(currentEmojiChoices.count))))
+        if emoji[card] == nil, currentEmojiChoices.count > 0{
+            emoji[card] = currentEmojiChoices.remove(at:currentEmojiChoices.count.arc4Random)
         }
-        return emoji[card.identifier] ?? "?"
+        return emoji[card] ?? "?"
         
+    }
+}
+
+//Extended Into to get a random number
+
+extension Int {
+    var arc4Random: Int {
+        if self > 0 {
+            return Int(arc4random_uniform(UInt32(self)))
+        } else if self < 0{
+            return -Int(arc4random_uniform(UInt32(abs(self))))
+        } else{
+            return 0
+        }
     }
 }
 
