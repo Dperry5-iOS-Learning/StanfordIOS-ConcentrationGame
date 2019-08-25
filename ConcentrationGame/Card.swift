@@ -19,7 +19,8 @@ struct Card: Hashable
     // UI Independent so no emojis.
     var isFaceUp = false
     var isMatched = false
-    private var identifier: Int
+    var hasBeenSeen = false
+    var identifier: Int
     
     // Synthesized by compiler
     func hash(into hasher: inout Hasher) {

@@ -8,7 +8,7 @@
 
 import UIKit
 
-class ViewController: UIViewController {
+class ConcentrationViewController: UIViewController {
 
     // Does not get initialized until its referenced
     // Cannot use property observervers like didSet
@@ -31,17 +31,39 @@ class ViewController: UIViewController {
         }
     }
     
+    
     private func updateFlipCountLabel(){
         // Add some outline and cool ness
         let attributes: [NSAttributedString.Key:Any] = [
             .strokeWidth: 5.0,
-            .strokeColor: #colorLiteral(red: 1, green: 0.6172243953, blue: 0, alpha: 1)
+            .strokeColor: #colorLiteral(red: 0, green: 0, blue: 0, alpha: 1)
         ]
-        let attributedString = NSAttributedString(string: "Flips: \(flipCount)", attributes: attributes)
-        flipCountLabel.attributedText = attributedString
+        if game.isGameOver {
+            let attributedString = NSAttributedString(string: "You Win!: \(game.score)", attributes: attributes)
+            flipCountLabel.attributedText = attributedString
+
+        } else {
+            let attributedString = NSAttributedString(string: "Score: \(game.score)", attributes: attributes)
+            flipCountLabel.attributedText = attributedString
+        }
+       
     }
     
+    var theme: [String]? {
+        didSet {
+            emojiChoices = theme!
+            currentEmojiChoices = theme!
+            emoji = [:]
+            updateViewFromModel()
+        }
+    }
+    
+    
+    
     private var emojiChoices = ["🎃", "🍭", "🍫", "🍬","👻","🦇", "😈","🍎","🙀" ]
+    
+    
+    
     private var currentEmojiChoices = [String]()
     
     private var emoji = [Card:String]()
@@ -89,6 +111,9 @@ class ViewController: UIViewController {
             // "External names used below"
 //            flipCard(withEmoji: emojiChoices[cardIndex], on: sender);
             game.chooseCard(at: cardIndex)
+            
+            updateFlipCountLabel()
+
             updateViewFromModel()
         } else{
             print("Chosen card not in card button")
@@ -98,19 +123,23 @@ class ViewController: UIViewController {
     }
     
     private func updateViewFromModel(){
-        for index in cardButtons.indices {
-            let button = cardButtons[index]
-            let card = game.cards[index]
-            if card.isFaceUp {
-                button.setTitle(emoji(for:card), for: UIControl.State.normal)
-                button.backgroundColor = #colorLiteral(red: 1.0, green: 1.0, blue: 1.0, alpha: 1.0)
-            }else {
-                button.setTitle("", for: UIControl.State.normal)
-                // type in color
-                // set color literal
-                button.backgroundColor = card.isMatched ?#colorLiteral(red: 1, green: 1, blue: 1, alpha: 0) : #colorLiteral(red: 1, green: 0.6172243953, blue: 0, alpha: 1)
+        
+        if cardButtons != nil {
+            for index in cardButtons.indices {
+                let button = cardButtons[index]
+                let card = game.cards[index]
+                if card.isFaceUp {
+                    button.setTitle(emoji(for:card), for: UIControl.State.normal)
+                    button.backgroundColor = #colorLiteral(red: 0.501960814, green: 0.501960814, blue: 0.501960814, alpha: 1)
+                }else {
+                    button.setTitle("", for: UIControl.State.normal)
+                    // type in color
+                    // set color literal
+                    button.backgroundColor = card.isMatched ?#colorLiteral(red: 1, green: 1, blue: 1, alpha: 0) : #colorLiteral(red: 0, green: 1, blue: 0.6151773334, alpha: 1)
+                }
             }
         }
+        
     }
     
  

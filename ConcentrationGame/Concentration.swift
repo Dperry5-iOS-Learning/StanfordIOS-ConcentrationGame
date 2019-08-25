@@ -16,6 +16,14 @@ struct Concentration
     // let is not writable
     private(set) var cards = [Card]()
     
+    var score = 0
+    var isGameOver = false
+    
+    let score_points = [
+        "MATCH": 2,
+        "SEEN_BEFORE": -1
+    ]
+    
     // mutable because it has the setter
     private var indexOfOneAndOnlyFaceUpCard: Int? {
         get {
@@ -45,12 +53,26 @@ struct Concentration
                 if cards[matchIndex] == cards[index]{
                     cards[matchIndex].isMatched = true
                     cards[index].isMatched = true
+                    score += self.score_points["MATCH"]!
+                    if cards.allSatisfy({ $0.isMatched }) {
+                        self.isGameOver = true
+                    }
+                } else {
+                    if cards[matchIndex].hasBeenSeen {
+                        score += self.score_points["SEEN_BEFORE"]!
+                    }
+                    if cards[index].hasBeenSeen {
+                        score += self.score_points["SEEN_BEFORE"]!
+                    }
+                    cards[matchIndex].hasBeenSeen = true
+                    cards[index].hasBeenSeen = true
                 }
                 
                 cards[index].isFaceUp = true
             } else{
                 // either No Cards or 2 cards are face up
                 // Turn all Cards Facedown
+                
                 indexOfOneAndOnlyFaceUpCard = index
             }
         }
