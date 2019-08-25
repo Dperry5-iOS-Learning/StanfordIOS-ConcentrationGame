@@ -8,7 +8,7 @@
 
 import UIKit
 
-class ConcentrationViewController: UIViewController {
+class ConcentrationViewController: ViewControllerLifecycleLoggingViewController {
 
     // Does not get initialized until its referenced
     // Cannot use property observervers like didSet
@@ -16,6 +16,11 @@ class ConcentrationViewController: UIViewController {
     
     // computed property
     // should not be settable, but its not settable anyway
+    
+    override var vclLoggingName: String {
+        return "Game"
+    }
+    
     
     var numberOfPairsOfCards: Int {
         return (cardButtons.count + 1) / 2
@@ -107,7 +112,7 @@ class ConcentrationViewController: UIViewController {
         // Use If to protect us from crtash
         flipCount += 1
         if let cardIndex = cardButtons.firstIndex(of:sender) {
-            print("CardNumber = \(cardIndex)")
+//            print("CardNumber = \(cardIndex)")
             // "External names used below"
 //            flipCard(withEmoji: emojiChoices[cardIndex], on: sender);
             game.chooseCard(at: cardIndex)
