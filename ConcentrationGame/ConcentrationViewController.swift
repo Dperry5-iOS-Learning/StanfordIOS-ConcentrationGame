@@ -21,9 +21,13 @@ class ConcentrationViewController: ViewControllerLifecycleLoggingViewController 
         return "Game"
     }
     
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        updateViewFromModel()
+    }
     
     var numberOfPairsOfCards: Int {
-        return (cardButtons.count + 1) / 2
+        return (visibleCardButtons.count + 1) / 2
     }
     
     // Property == Instant Variable
@@ -44,11 +48,14 @@ class ConcentrationViewController: ViewControllerLifecycleLoggingViewController 
             .strokeColor: #colorLiteral(red: 0, green: 0, blue: 0, alpha: 1)
         ]
         if game.isGameOver {
-            let attributedString = NSAttributedString(string: "You Win!: \(game.score)", attributes: attributes)
+            let attributedString = NSAttributedString(
+                string: traitCollection.verticalSizeClass == .compact ? "You Win!:\n \(game.score)" : "You Win!: \(game.score)",
+                attributes: attributes)
             flipCountLabel.attributedText = attributedString
 
         } else {
-            let attributedString = NSAttributedString(string: "Score: \(game.score)", attributes: attributes)
+            let attributedString = NSAttributedString(
+                string: traitCollection.verticalSizeClass == .compact ? "Score:\n \(game.score)" : "Score: \(game.score)", attributes: attributes)
             flipCountLabel.attributedText = attributedString
         }
        
@@ -83,8 +90,16 @@ class ConcentrationViewController: ViewControllerLifecycleLoggingViewController 
     @IBOutlet private var cardButtons: [UIButton]!
     
     
+    private var visibleCardButtons: [UIButton]! {
+        return cardButtons?.filter {
+            !$0.superview!.isHidden
+        }
+    }
     
-    
+    override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+        super.traitCollectionDidChange(previousTraitCollection)
+        updateFlipCountLabel() 
+    }
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -97,7 +112,7 @@ class ConcentrationViewController: ViewControllerLifecycleLoggingViewController 
     
     @IBAction private func newGamePressed(_ sender: Any) {
         currentEmojiChoices = emojiChoices
-        game = Concentration(numberOfPairsOfCards: (cardButtons.count + 1) / 2)
+        game = Concentration(numberOfPairsOfCards: (visibleCardButtons.count + 1) / 2)
         updateViewFromModel()
         emoji = [Card:String]()
 
@@ -111,7 +126,7 @@ class ConcentrationViewController: ViewControllerLifecycleLoggingViewController 
         // ! = Assume  optional is set, and grab associated value, if optional isn't set, and ! is used, the program will crash
         // Use If to protect us from crtash
         flipCount += 1
-        if let cardIndex = cardButtons.firstIndex(of:sender) {
+        if let cardIndex = visibleCardButtons.firstIndex(of:sender) {
 //            print("CardNumber = \(cardIndex)")
             // "External names used below"
 //            flipCard(withEmoji: emojiChoices[cardIndex], on: sender);
@@ -129,9 +144,9 @@ class ConcentrationViewController: ViewControllerLifecycleLoggingViewController 
     
     private func updateViewFromModel(){
         
-        if cardButtons != nil {
-            for index in cardButtons.indices {
-                let button = cardButtons[index]
+        if visibleCardButtons != nil {
+            for index in visibleCardButtons.indices {
+                let button = visibleCardButtons[index]
                 let card = game.cards[index]
                 if card.isFaceUp {
                     button.setTitle(emoji(for:card), for: UIControl.State.normal)
